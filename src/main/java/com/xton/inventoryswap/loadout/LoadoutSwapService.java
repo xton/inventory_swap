@@ -1,4 +1,4 @@
-package com.xton.inventoryswap.profile;
+package com.xton.inventoryswap.loadout;
 
 import org.bukkit.entity.Player;
 
@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
  * Performs the actual inventory swap for an online player, shared by the
  * sign/barrel listener and the admin commands.
  */
-public class ProfileSwapService {
+public class LoadoutSwapService {
 
     public enum Result {
         SWITCHED,
@@ -14,30 +14,30 @@ public class ProfileSwapService {
         ALREADY_ACTIVE
     }
 
-    private final ProfileManager profileManager;
+    private final LoadoutManager loadoutManager;
 
-    public ProfileSwapService(ProfileManager profileManager) {
-        this.profileManager = profileManager;
+    public LoadoutSwapService(LoadoutManager loadoutManager) {
+        this.loadoutManager = loadoutManager;
     }
 
-    public Result switchProfile(Player player, String profileName) {
-        PlayerProfileData data = profileManager.getData(player);
-        String currentProfile = data.getCurrentProfile();
+    public Result switchLoadout(Player player, String loadoutName) {
+        PlayerLoadoutData data = loadoutManager.getData(player);
+        String currentLoadout = data.getCurrentLoadout();
 
-        if (currentProfile.equalsIgnoreCase(profileName)) {
+        if (currentLoadout.equalsIgnoreCase(loadoutName)) {
             return Result.ALREADY_ACTIVE;
         }
 
-        // Stash what the player is currently carrying back into their current profile.
-        data.setProfile(currentProfile, InventorySnapshot.capture(player));
+        // Stash what the player is currently carrying back into their current loadout.
+        data.setLoadout(currentLoadout, InventorySnapshot.capture(player));
 
-        InventorySnapshot existing = data.getProfile(profileName);
+        InventorySnapshot existing = data.getLoadout(loadoutName);
         boolean created = existing == null;
         InventorySnapshot target = created ? InventorySnapshot.empty() : existing;
         target.apply(player);
 
-        data.setCurrentProfile(profileName);
-        profileManager.save(player);
+        data.setCurrentLoadout(loadoutName);
+        loadoutManager.save(player);
 
         return created ? Result.CREATED : Result.SWITCHED;
     }

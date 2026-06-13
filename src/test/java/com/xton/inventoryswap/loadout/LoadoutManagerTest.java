@@ -1,7 +1,9 @@
-package com.xton.inventoryswap.profile;
+package com.xton.inventoryswap.loadout;
 
 import com.xton.inventoryswap.InventorySwapPlugin;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,9 +12,14 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.io.File;
+import java.io.IOException;
 
-class ProfileManagerTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class LoadoutManagerTest {
 
     private ServerMock server;
     private InventorySwapPlugin plugin;
@@ -29,34 +36,61 @@ class ProfileManagerTest {
     }
 
     @Test
-    void persistsProfilesAcrossUnloadAndReload() {
-        ProfileManager manager = plugin.getProfileManager();
+    void persistsLoadoutsAcrossUnloadAndReload() {
+        LoadoutManager manager = plugin.getLoadoutManager();
         PlayerMock player = server.addPlayer();
         player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 5));
 
-        PlayerProfileData data = manager.getData(player);
-        data.setCurrentProfile("castle");
-        data.setProfile("default", InventorySnapshot.capture(player));
+        PlayerLoadoutData data = manager.getData(player);
+        data.setCurrentLoadout("castle");
+        data.setLoadout("default", InventorySnapshot.capture(player));
         manager.save(player);
         manager.unload(player);
 
-        PlayerProfileData reloaded = manager.getData(player);
+        PlayerLoadoutData reloaded = manager.getData(player);
 
-        assertEquals("castle", reloaded.getCurrentProfile());
-        InventorySnapshot defaultSnapshot = reloaded.getProfile("default");
+        assertEquals("castle", reloaded.getCurrentLoadout());
+        InventorySnapshot defaultSnapshot = reloaded.getLoadout("default");
         PlayerMock target = server.addPlayer("target");
         defaultSnapshot.apply(target);
         assertEquals(new ItemStack(Material.DIAMOND, 5), target.getInventory().getItem(0));
     }
 
     @Test
-    void newPlayerStartsOnDefaultProfileWithNoSavedProfiles() {
-        ProfileManager manager = plugin.getProfileManager();
+    void newPlayerStartsOnDefaultLoadoutWithNoSavedLoadouts() {
+        LoadoutManager manager = plugin.getLoadoutManager();
         PlayerMock player = server.addPlayer();
 
-        PlayerProfileData data = manager.getData(player);
+        PlayerLoadoutData data = manager.getData(player);
 
-        assertEquals(PlayerProfileData.DEFAULT_PROFILE, data.getCurrentProfile());
-        assertEquals(0, data.getProfiles().size());
+        assertEquals(PlayerLoadoutData.DEFAULT_LOADOUT, data.getCurrentLoadout());
+        assertEquals(0, data.getLoadouts().size());
+    }
+
+    @Test
+    void migratesLegacyProfileFormatOnLoad() throws IOException {
+        LoadoutManager manager = plugin.getLoadoutManager();
+        PlayerMock player = server.addPlayer();
+
+        File playerDataFolder = new File(plugin.getDataFolder(), "playerdata");
+        playerDataFolder.mkdirs();
+        File file = new File(playerDataFolder, player.getUniqueId() + ".yml");
+
+        YamlConfiguration legacy = new YamlConfiguration();
+        legacy.set("current-profile", "castle");
+        ConfigurationSection profilesSection = legacy.createSection("profiles");
+        InventorySnapshot.empty().writeTo(profilesSection.createSection("castle"));
+        legacy.save(file);
+
+        PlayerLoadoutData data = manager.getData(player);
+
+        assertEquals("castle", data.getCurrentLoadout());
+        assertTrue(data.getLoadouts().containsKey("castle"));
+
+        YamlConfiguration migrated = YamlConfiguration.loadConfiguration(file);
+        assertEquals("castle", migrated.getString("current-loadout"));
+        assertTrue(migrated.contains("loadouts.castle"));
+        assertFalse(migrated.contains("current-profile"));
+        assertFalse(migrated.contains("profiles"));
     }
 }

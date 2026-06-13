@@ -1,7 +1,7 @@
 package com.xton.inventoryswap;
 
-import com.xton.inventoryswap.profile.ProfileSwapService;
-import com.xton.inventoryswap.profile.SwapFeedback;
+import com.xton.inventoryswap.loadout.LoadoutSwapService;
+import com.xton.inventoryswap.loadout.SwapFeedback;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.block.Block;
@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Listens for right-clicks on signs whose first line is "[INV]", or on a container
  * (barrel, chest, etc.) that has such a sign mounted on top of or beside it, and
- * swaps the clicking player's inventory to the profile named on the second line.
+ * swaps the clicking player's inventory to the loadout named on the second line.
  */
 public class SwapTriggerListener implements Listener {
 
@@ -33,9 +33,9 @@ public class SwapTriggerListener implements Listener {
             BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST
     };
 
-    private final ProfileSwapService swapService;
+    private final LoadoutSwapService swapService;
 
-    public SwapTriggerListener(ProfileSwapService swapService) {
+    public SwapTriggerListener(LoadoutSwapService swapService) {
         this.swapService = swapService;
     }
 
@@ -64,8 +64,8 @@ public class SwapTriggerListener implements Listener {
             return;
         }
 
-        String profileName = readProfileName(sign);
-        if (profileName == null) {
+        String loadoutName = readLoadoutName(sign);
+        if (loadoutName == null) {
             return;
         }
 
@@ -77,11 +77,11 @@ public class SwapTriggerListener implements Listener {
         event.setCancelled(true);
         restyleSign(sign);
 
-        ProfileSwapService.Result result = swapService.switchProfile(player, profileName);
+        LoadoutSwapService.Result result = swapService.switchLoadout(player, loadoutName);
         switch (result) {
-            case SWITCHED -> SwapFeedback.showSwitched(player, profileName, false);
-            case CREATED -> SwapFeedback.showSwitched(player, profileName, true);
-            case ALREADY_ACTIVE -> SwapFeedback.showAlreadyActive(player, profileName);
+            case SWITCHED -> SwapFeedback.showSwitched(player, loadoutName, false);
+            case CREATED -> SwapFeedback.showSwitched(player, loadoutName, true);
+            case ALREADY_ACTIVE -> SwapFeedback.showAlreadyActive(player, loadoutName);
         }
     }
 
@@ -90,7 +90,7 @@ public class SwapTriggerListener implements Listener {
      */
     private Sign findAttachedSign(Block container) {
         BlockState above = container.getRelative(BlockFace.UP).getState();
-        if (above instanceof Sign sign && readProfileName(sign) != null) {
+        if (above instanceof Sign sign && readLoadoutName(sign) != null) {
             return sign;
         }
 
@@ -99,7 +99,7 @@ public class SwapTriggerListener implements Listener {
             if (neighbor instanceof Sign sign
                     && sign.getBlockData() instanceof WallSign wallSign
                     && wallSign.getFacing() == face
-                    && readProfileName(sign) != null) {
+                    && readLoadoutName(sign) != null) {
                 return sign;
             }
         }
@@ -123,11 +123,11 @@ public class SwapTriggerListener implements Listener {
         }
 
         if (lines.size() > 1) {
-            String profileText = PlainTextComponentSerializer.plainText().serialize(lines.get(1)).trim();
-            if (!profileText.isEmpty()) {
-                Component styledProfile = SignStyle.styledProfileName(profileText);
-                if (!styledProfile.equals(lines.get(1))) {
-                    front.line(1, styledProfile);
+            String loadoutText = PlainTextComponentSerializer.plainText().serialize(lines.get(1)).trim();
+            if (!loadoutText.isEmpty()) {
+                Component styledLoadout = SignStyle.styledLoadoutName(loadoutText);
+                if (!styledLoadout.equals(lines.get(1))) {
+                    front.line(1, styledLoadout);
                     changed = true;
                 }
             }
@@ -139,9 +139,9 @@ public class SwapTriggerListener implements Listener {
     }
 
     /**
-     * Returns the profile name from an "[INV]" sign's front side, or null if the sign isn't tagged.
+     * Returns the loadout name from an "[INV]" sign's front side, or null if the sign isn't tagged.
      */
-    private String readProfileName(Sign sign) {
+    private String readLoadoutName(Sign sign) {
         List<Component> lines = sign.getSide(Side.FRONT).lines();
         if (lines.isEmpty()) {
             return null;
@@ -152,9 +152,9 @@ public class SwapTriggerListener implements Listener {
             return null;
         }
 
-        String profileName = lines.size() > 1
+        String loadoutName = lines.size() > 1
                 ? PlainTextComponentSerializer.plainText().serialize(lines.get(1)).trim()
                 : "";
-        return profileName.isEmpty() ? null : profileName.toLowerCase();
+        return loadoutName.isEmpty() ? null : loadoutName.toLowerCase();
     }
 }

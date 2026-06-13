@@ -1,44 +1,44 @@
-package com.xton.inventoryswap.profile;
+package com.xton.inventoryswap.loadout;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * All of a single player's inventory profiles, plus which one is currently active.
+ * All of a single player's inventory loadouts, plus which one is currently active.
  */
-public class PlayerProfileData {
+public class PlayerLoadoutData {
 
-    public static final String DEFAULT_PROFILE = "default";
+    public static final String DEFAULT_LOADOUT = "default";
 
-    private String currentProfile;
-    private final Map<String, InventorySnapshot> profiles;
+    private String currentLoadout;
+    private final Map<String, InventorySnapshot> loadouts;
 
-    public PlayerProfileData(String currentProfile, Map<String, InventorySnapshot> profiles) {
-        this.currentProfile = currentProfile;
-        this.profiles = profiles;
+    public PlayerLoadoutData(String currentLoadout, Map<String, InventorySnapshot> loadouts) {
+        this.currentLoadout = currentLoadout;
+        this.loadouts = loadouts;
     }
 
-    public static PlayerProfileData createDefault() {
-        return new PlayerProfileData(DEFAULT_PROFILE, new HashMap<>());
+    public static PlayerLoadoutData createDefault() {
+        return new PlayerLoadoutData(DEFAULT_LOADOUT, new HashMap<>());
     }
 
-    public String getCurrentProfile() {
-        return currentProfile;
+    public String getCurrentLoadout() {
+        return currentLoadout;
     }
 
-    public void setCurrentProfile(String profile) {
-        this.currentProfile = profile;
+    public void setCurrentLoadout(String loadout) {
+        this.currentLoadout = loadout;
     }
 
-    public InventorySnapshot getProfile(String name) {
-        return profiles.get(name);
+    public InventorySnapshot getLoadout(String name) {
+        return loadouts.get(name);
     }
 
-    public void setProfile(String name, InventorySnapshot snapshot) {
-        profiles.put(name, snapshot);
+    public void setLoadout(String name, InventorySnapshot snapshot) {
+        loadouts.put(name, snapshot);
     }
 
-    public Map<String, InventorySnapshot> getProfiles() {
-        return profiles;
+    public Map<String, InventorySnapshot> getLoadouts() {
+        return loadouts;
     }
 }

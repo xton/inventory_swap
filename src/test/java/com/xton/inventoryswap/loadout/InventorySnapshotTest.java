@@ -1,4 +1,4 @@
-package com.xton.inventoryswap.profile;
+package com.xton.inventoryswap.loadout;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -71,9 +71,9 @@ class InventorySnapshotTest {
         InventorySnapshot snapshot = InventorySnapshot.capture(source);
 
         MemoryConfiguration config = new MemoryConfiguration();
-        snapshot.writeTo(config.createSection("profile"));
+        snapshot.writeTo(config.createSection("loadout"));
 
-        InventorySnapshot restored = InventorySnapshot.readFrom(config.getConfigurationSection("profile"));
+        InventorySnapshot restored = InventorySnapshot.readFrom(config.getConfigurationSection("loadout"));
 
         PlayerMock target = server.addPlayer();
         restored.apply(target);

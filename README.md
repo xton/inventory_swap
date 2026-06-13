@@ -1,11 +1,11 @@
 # InventorySwap
 
-A PaperMC plugin that lets players keep several separate inventory "profiles"
+A PaperMC plugin that lets players keep several separate inventory "loadouts"
 (e.g. one per building project) and switch between them in-game.
 
 ## How it works
 
-1. Place a sign and write `[INV]` on the first line and a profile name on the
+1. Place a sign and write `[INV]` on the first line and a loadout name on the
    second line, e.g.:
 
    ```
@@ -14,32 +14,32 @@ A PaperMC plugin that lets players keep several separate inventory "profiles"
    ```
 
    As soon as you finish editing it, the plugin recognizes the sign and
-   recolors it (`[INV]` turns gray and italic, the profile name turns bold
+   recolors it (`[INV]` turns gray and italic, the loadout name turns bold
    dark green) so you can tell at a glance that it's "live".
 
 2. Right-click the sign **or** a container (barrel, chest, etc.) that the
    sign is mounted on top of or attached to. The plugin will:
    - Stash your current inventory, armor, and offhand item into your
-     currently-active profile.
-   - Load the named profile's contents (creating an empty one the first time
+     currently-active loadout.
+   - Load the named loadout's contents (creating an empty one the first time
      you switch to it).
    - Show a title card and play a sound to confirm the swap.
 
-   Right-clicking a sign/barrel for the profile you're already on just shows
+   Right-clicking a sign/barrel for the loadout you're already on just shows
    an action-bar message instead of swapping anything.
 
-Each player starts on a profile called `default`.
+Each player starts on a loadout called `default`.
 
 ## Admin commands (`/inv`, requires `inventoryswap.admin`, default: op)
 
 `/invswap` also works as an alias.
 
-- `/inv list [player]` - list a player's profiles
-- `/inv current [player]` - show a player's active profile
-- `/inv swap <profile> [player]` - swap a player's active inventory
-- `/inv create <profile> [player]` - create an empty profile
-- `/inv delete <profile> [player]` - delete a profile (must not be active)
-- `/inv rename <old> <new> [player]` - rename a profile
+- `/inv list [player]` - list a player's loadouts
+- `/inv current [player]` - show a player's active loadout
+- `/inv swap <loadout> [player]` - swap a player's active inventory
+- `/inv create <loadout> [player]` - create an empty loadout
+- `/inv delete <loadout> [player]` - delete a loadout (must not be active)
+- `/inv rename <old> <new> [player]` - rename a loadout
 
 `player` defaults to the command sender when omitted.
 
@@ -60,7 +60,7 @@ The plugin jar is written to `build/libs/`.
 ```
 
 These run the plugin's logic against a simulated server (no real Minecraft
-server required) and cover profile persistence, sign/barrel swap triggers,
+server required) and cover loadout persistence, sign/barrel swap triggers,
 sign styling, and the admin commands.
 
 ### Docker smoke test

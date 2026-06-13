@@ -1,24 +1,24 @@
 package com.xton.inventoryswap;
 
 import com.xton.inventoryswap.command.InvSwapCommand;
-import com.xton.inventoryswap.profile.ProfileManager;
-import com.xton.inventoryswap.profile.ProfileSwapService;
+import com.xton.inventoryswap.loadout.LoadoutManager;
+import com.xton.inventoryswap.loadout.LoadoutSwapService;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class InventorySwapPlugin extends JavaPlugin {
 
-    private ProfileManager profileManager;
+    private LoadoutManager loadoutManager;
 
     @Override
     public void onEnable() {
-        profileManager = new ProfileManager(this);
-        ProfileSwapService swapService = new ProfileSwapService(profileManager);
+        loadoutManager = new LoadoutManager(this);
+        LoadoutSwapService swapService = new LoadoutSwapService(loadoutManager);
 
         getServer().getPluginManager().registerEvents(new SwapTriggerListener(swapService), this);
         getServer().getPluginManager().registerEvents(new SignStyleListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerQuitListener(profileManager), this);
+        getServer().getPluginManager().registerEvents(new PlayerQuitListener(loadoutManager), this);
 
-        InvSwapCommand invSwapCommand = new InvSwapCommand(profileManager, swapService);
+        InvSwapCommand invSwapCommand = new InvSwapCommand(loadoutManager, swapService);
         var inv = getCommand("inv");
         if (inv != null) {
             inv.setExecutor(invSwapCommand);
@@ -28,12 +28,12 @@ public class InventorySwapPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (profileManager != null) {
-            profileManager.saveAll();
+        if (loadoutManager != null) {
+            loadoutManager.saveAll();
         }
     }
 
-    public ProfileManager getProfileManager() {
-        return profileManager;
+    public LoadoutManager getLoadoutManager() {
+        return loadoutManager;
     }
 }

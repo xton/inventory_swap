@@ -1,10 +1,10 @@
 package com.xton.inventoryswap.command;
 
-import com.xton.inventoryswap.profile.InventorySnapshot;
-import com.xton.inventoryswap.profile.PlayerProfileData;
-import com.xton.inventoryswap.profile.ProfileManager;
-import com.xton.inventoryswap.profile.ProfileSwapService;
-import com.xton.inventoryswap.profile.SwapFeedback;
+import com.xton.inventoryswap.loadout.InventorySnapshot;
+import com.xton.inventoryswap.loadout.LoadoutManager;
+import com.xton.inventoryswap.loadout.LoadoutSwapService;
+import com.xton.inventoryswap.loadout.PlayerLoadoutData;
+import com.xton.inventoryswap.loadout.SwapFeedback;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -23,18 +23,18 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
- * Admin command for inspecting and managing players' inventory profiles.
+ * Admin command for inspecting and managing players' inventory loadouts.
  */
 public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "list", "current", "swap", "create", "delete", "rename");
 
-    private final ProfileManager profileManager;
-    private final ProfileSwapService swapService;
+    private final LoadoutManager loadoutManager;
+    private final LoadoutSwapService swapService;
 
-    public InvSwapCommand(ProfileManager profileManager, ProfileSwapService swapService) {
-        this.profileManager = profileManager;
+    public InvSwapCommand(LoadoutManager loadoutManager, LoadoutSwapService swapService) {
+        this.loadoutManager = loadoutManager;
         this.swapService = swapService;
     }
 
@@ -63,18 +63,18 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        PlayerProfileData data = profileManager.getData(target.getUniqueId());
-        String current = data.getCurrentProfile();
+        PlayerLoadoutData data = loadoutManager.getData(target.getUniqueId());
+        String current = data.getCurrentLoadout();
 
-        sender.sendMessage(Component.text("Profiles for " + target.getName() + ":", NamedTextColor.GOLD));
-        sender.sendMessage(formatProfileLine(current, current));
-        data.getProfiles().keySet().stream()
+        sender.sendMessage(Component.text("Loadouts for " + target.getName() + ":", NamedTextColor.GOLD));
+        sender.sendMessage(formatLoadoutLine(current, current));
+        data.getLoadouts().keySet().stream()
                 .filter(name -> !name.equalsIgnoreCase(current))
                 .sorted()
-                .forEach(name -> sender.sendMessage(formatProfileLine(name, current)));
+                .forEach(name -> sender.sendMessage(formatLoadoutLine(name, current)));
     }
 
-    private Component formatProfileLine(String name, String current) {
+    private Component formatLoadoutLine(String name, String current) {
         boolean active = name.equalsIgnoreCase(current);
         Component text = Component.text(" - " + name, active ? NamedTextColor.GREEN : NamedTextColor.GRAY);
         if (active) {
@@ -89,18 +89,18 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        PlayerProfileData data = profileManager.getData(target.getUniqueId());
+        PlayerLoadoutData data = loadoutManager.getData(target.getUniqueId());
         sender.sendMessage(Component.text(
-                target.getName() + "'s active profile: " + data.getCurrentProfile(), NamedTextColor.GOLD));
+                target.getName() + "'s active loadout: " + data.getCurrentLoadout(), NamedTextColor.GOLD));
     }
 
     private void handleSwap(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /inv swap <profile> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv swap <loadout> [player]", NamedTextColor.RED));
             return;
         }
 
-        String profileName = args[1].toLowerCase(Locale.ROOT);
+        String loadoutName = args[1].toLowerCase(Locale.ROOT);
         OfflinePlayer target = resolveTarget(sender, args, 2);
         if (target == null) {
             return;
@@ -113,63 +113,63 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        ProfileSwapService.Result result = swapService.switchProfile(online, profileName);
+        LoadoutSwapService.Result result = swapService.switchLoadout(online, loadoutName);
         switch (result) {
-            case SWITCHED -> SwapFeedback.showSwitched(online, profileName, false);
-            case CREATED -> SwapFeedback.showSwitched(online, profileName, true);
-            case ALREADY_ACTIVE -> SwapFeedback.showAlreadyActive(online, profileName);
+            case SWITCHED -> SwapFeedback.showSwitched(online, loadoutName, false);
+            case CREATED -> SwapFeedback.showSwitched(online, loadoutName, true);
+            case ALREADY_ACTIVE -> SwapFeedback.showAlreadyActive(online, loadoutName);
         }
-        sender.sendMessage(Component.text("Swapped " + online.getName() + " to '" + profileName + "'.", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("Swapped " + online.getName() + " to '" + loadoutName + "'.", NamedTextColor.GREEN));
     }
 
     private void handleCreate(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /inv create <profile> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv create <loadout> [player]", NamedTextColor.RED));
             return;
         }
 
-        String profileName = args[1].toLowerCase(Locale.ROOT);
+        String loadoutName = args[1].toLowerCase(Locale.ROOT);
         OfflinePlayer target = resolveTarget(sender, args, 2);
         if (target == null) {
             return;
         }
 
-        PlayerProfileData data = profileManager.getData(target.getUniqueId());
-        if (profileExists(data, profileName)) {
-            sender.sendMessage(Component.text("'" + profileName + "' already exists for " + target.getName() + ".", NamedTextColor.RED));
+        PlayerLoadoutData data = loadoutManager.getData(target.getUniqueId());
+        if (loadoutExists(data, loadoutName)) {
+            sender.sendMessage(Component.text("'" + loadoutName + "' already exists for " + target.getName() + ".", NamedTextColor.RED));
             return;
         }
 
-        data.setProfile(profileName, InventorySnapshot.empty());
-        profileManager.save(target.getUniqueId());
-        sender.sendMessage(Component.text("Created empty profile '" + profileName + "' for " + target.getName() + ".", NamedTextColor.GREEN));
+        data.setLoadout(loadoutName, InventorySnapshot.empty());
+        loadoutManager.save(target.getUniqueId());
+        sender.sendMessage(Component.text("Created empty loadout '" + loadoutName + "' for " + target.getName() + ".", NamedTextColor.GREEN));
     }
 
     private void handleDelete(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /inv delete <profile> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv delete <loadout> [player]", NamedTextColor.RED));
             return;
         }
 
-        String profileName = args[1].toLowerCase(Locale.ROOT);
+        String loadoutName = args[1].toLowerCase(Locale.ROOT);
         OfflinePlayer target = resolveTarget(sender, args, 2);
         if (target == null) {
             return;
         }
 
-        PlayerProfileData data = profileManager.getData(target.getUniqueId());
-        if (profileName.equalsIgnoreCase(data.getCurrentProfile())) {
+        PlayerLoadoutData data = loadoutManager.getData(target.getUniqueId());
+        if (loadoutName.equalsIgnoreCase(data.getCurrentLoadout())) {
             sender.sendMessage(Component.text(
-                    "Can't delete " + target.getName() + "'s active profile. Switch away from it first.", NamedTextColor.RED));
+                    "Can't delete " + target.getName() + "'s active loadout. Switch away from it first.", NamedTextColor.RED));
             return;
         }
-        if (data.getProfiles().remove(profileName) == null) {
-            sender.sendMessage(Component.text("'" + profileName + "' doesn't exist for " + target.getName() + ".", NamedTextColor.RED));
+        if (data.getLoadouts().remove(loadoutName) == null) {
+            sender.sendMessage(Component.text("'" + loadoutName + "' doesn't exist for " + target.getName() + ".", NamedTextColor.RED));
             return;
         }
 
-        profileManager.save(target.getUniqueId());
-        sender.sendMessage(Component.text("Deleted profile '" + profileName + "' for " + target.getName() + ".", NamedTextColor.GREEN));
+        loadoutManager.save(target.getUniqueId());
+        sender.sendMessage(Component.text("Deleted loadout '" + loadoutName + "' for " + target.getName() + ".", NamedTextColor.GREEN));
     }
 
     private void handleRename(CommandSender sender, String[] args) {
@@ -185,32 +185,32 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        PlayerProfileData data = profileManager.getData(target.getUniqueId());
-        if (profileExists(data, newName)) {
+        PlayerLoadoutData data = loadoutManager.getData(target.getUniqueId());
+        if (loadoutExists(data, newName)) {
             sender.sendMessage(Component.text("'" + newName + "' already exists for " + target.getName() + ".", NamedTextColor.RED));
             return;
         }
 
-        boolean renamedCurrent = oldName.equalsIgnoreCase(data.getCurrentProfile());
-        InventorySnapshot snapshot = data.getProfiles().remove(oldName);
+        boolean renamedCurrent = oldName.equalsIgnoreCase(data.getCurrentLoadout());
+        InventorySnapshot snapshot = data.getLoadouts().remove(oldName);
         if (!renamedCurrent && snapshot == null) {
             sender.sendMessage(Component.text("'" + oldName + "' doesn't exist for " + target.getName() + ".", NamedTextColor.RED));
             return;
         }
 
         if (snapshot != null) {
-            data.setProfile(newName, snapshot);
+            data.setLoadout(newName, snapshot);
         }
         if (renamedCurrent) {
-            data.setCurrentProfile(newName);
+            data.setCurrentLoadout(newName);
         }
 
-        profileManager.save(target.getUniqueId());
-        sender.sendMessage(Component.text("Renamed profile '" + oldName + "' to '" + newName + "' for " + target.getName() + ".", NamedTextColor.GREEN));
+        loadoutManager.save(target.getUniqueId());
+        sender.sendMessage(Component.text("Renamed loadout '" + oldName + "' to '" + newName + "' for " + target.getName() + ".", NamedTextColor.GREEN));
     }
 
-    private boolean profileExists(PlayerProfileData data, String name) {
-        return name.equalsIgnoreCase(data.getCurrentProfile()) || data.getProfiles().containsKey(name);
+    private boolean loadoutExists(PlayerLoadoutData data, String name) {
+        return name.equalsIgnoreCase(data.getCurrentLoadout()) || data.getLoadouts().containsKey(name);
     }
 
     private OfflinePlayer resolveTarget(CommandSender sender, String[] args, int index) {
@@ -234,12 +234,12 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text("InventorySwap commands:", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("/inv list [player] - list a player's profiles", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/inv current [player] - show a player's active profile", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/inv swap <profile> [player] - swap a player's active inventory", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/inv create <profile> [player] - create an empty profile", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/inv delete <profile> [player] - delete a profile", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/inv rename <old> <new> [player] - rename a profile", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv list [player] - list a player's loadouts", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv current [player] - show a player's active loadout", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv swap <loadout> [player] - swap a player's active inventory", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv create <loadout> [player] - create an empty loadout", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv delete <loadout> [player] - delete a loadout", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv rename <old> <new> [player] - rename a loadout", NamedTextColor.GRAY));
     }
 
     @Override
@@ -251,12 +251,12 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
         return switch (args[0].toLowerCase(Locale.ROOT)) {
             case "list", "current" -> args.length == 2 ? filter(onlinePlayerNames(), args[1]) : List.of();
             case "swap", "create", "delete" -> switch (args.length) {
-                case 2 -> filter(allProfileNames(sender), args[1]);
+                case 2 -> filter(allLoadoutNames(sender), args[1]);
                 case 3 -> filter(onlinePlayerNames(), args[2]);
                 default -> List.of();
             };
             case "rename" -> switch (args.length) {
-                case 2 -> filter(allProfileNames(sender), args[1]);
+                case 2 -> filter(allLoadoutNames(sender), args[1]);
                 case 4 -> filter(onlinePlayerNames(), args[3]);
                 default -> List.of();
             };
@@ -264,12 +264,12 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
         };
     }
 
-    private List<String> allProfileNames(CommandSender sender) {
-        Set<String> names = new TreeSet<>(profileManager.getAllKnownProfileNames());
+    private List<String> allLoadoutNames(CommandSender sender) {
+        Set<String> names = new TreeSet<>(loadoutManager.getAllKnownLoadoutNames());
         if (sender instanceof Player player) {
-            PlayerProfileData data = profileManager.getData(player);
-            names.add(data.getCurrentProfile());
-            names.addAll(data.getProfiles().keySet());
+            PlayerLoadoutData data = loadoutManager.getData(player);
+            names.add(data.getCurrentLoadout());
+            names.addAll(data.getLoadouts().keySet());
         }
         return new ArrayList<>(names);
     }

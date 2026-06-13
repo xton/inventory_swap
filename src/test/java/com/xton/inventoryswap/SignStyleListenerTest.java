@@ -62,7 +62,7 @@ class SignStyleListenerTest {
     }
 
     @Test
-    void recolorsTaggedSignAndProfileName() {
+    void recolorsTaggedSignAndLoadoutName() {
         SignChangeEvent event = change("[inv]", "castle", "", "");
 
         Component tagLine = event.line(0);
@@ -70,14 +70,14 @@ class SignStyleListenerTest {
         assertEquals(NamedTextColor.GRAY, tagLine.color());
         assertTrue(tagLine.hasDecoration(TextDecoration.ITALIC));
 
-        Component profileLine = event.line(1);
-        assertEquals("castle", plainText(profileLine));
-        assertEquals(NamedTextColor.DARK_GREEN, profileLine.color());
-        assertTrue(profileLine.hasDecoration(TextDecoration.BOLD));
+        Component loadoutLine = event.line(1);
+        assertEquals("castle", plainText(loadoutLine));
+        assertEquals(NamedTextColor.DARK_GREEN, loadoutLine.color());
+        assertTrue(loadoutLine.hasDecoration(TextDecoration.BOLD));
     }
 
     @Test
-    void leavesProfileLineAloneWhenEmpty() {
+    void leavesLoadoutLineAloneWhenEmpty() {
         SignChangeEvent event = change("[INV]", "", "", "");
 
         assertEquals("[inv]", plainText(event.line(0)));

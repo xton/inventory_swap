@@ -1,8 +1,8 @@
 package com.xton.inventoryswap.command;
 
 import com.xton.inventoryswap.InventorySwapPlugin;
-import com.xton.inventoryswap.profile.InventorySnapshot;
-import com.xton.inventoryswap.profile.PlayerProfileData;
+import com.xton.inventoryswap.loadout.InventorySnapshot;
+import com.xton.inventoryswap.loadout.PlayerLoadoutData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
@@ -49,30 +49,30 @@ class InvSwapCommandTest {
     }
 
     @Test
-    void currentShowsDefaultProfileForNewPlayer() {
+    void currentShowsDefaultLoadoutForNewPlayer() {
         server.dispatchCommand(player, "inv current");
 
-        assertEquals(player.getName() + "'s active profile: default", nextMessage());
+        assertEquals(player.getName() + "'s active loadout: default", nextMessage());
     }
 
     @Test
-    void listShowsDefaultProfileAsActive() {
+    void listShowsDefaultLoadoutAsActive() {
         server.dispatchCommand(player, "inv list");
 
-        assertEquals("Profiles for " + player.getName() + ":", nextMessage());
+        assertEquals("Loadouts for " + player.getName() + ":", nextMessage());
         assertEquals(" - default (active)", nextMessage());
     }
 
     @Test
-    void createAddsNewProfile() {
+    void createAddsNewLoadout() {
         server.dispatchCommand(player, "inv create castle");
 
-        assertEquals("Created empty profile 'castle' for " + player.getName() + ".", nextMessage());
-        assertTrue(plugin.getProfileManager().getData(player).getProfiles().containsKey("castle"));
+        assertEquals("Created empty loadout 'castle' for " + player.getName() + ".", nextMessage());
+        assertTrue(plugin.getLoadoutManager().getData(player).getLoadouts().containsKey("castle"));
     }
 
     @Test
-    void creatingDuplicateProfileFails() {
+    void creatingDuplicateLoadoutFails() {
         server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
@@ -82,53 +82,53 @@ class InvSwapCommandTest {
     }
 
     @Test
-    void swapSwapsActiveProfileAndCreatesItIfMissing() {
+    void swapSwapsActiveLoadoutAndCreatesItIfMissing() {
         player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 5));
 
         server.dispatchCommand(player, "inv swap castle");
 
         assertEquals("Swapped " + player.getName() + " to 'castle'.", nextMessage());
-        assertEquals("castle", plugin.getProfileManager().getData(player).getCurrentProfile());
+        assertEquals("castle", plugin.getLoadoutManager().getData(player).getCurrentLoadout());
         assertTrue(isEmpty(player.getInventory().getItem(0)));
     }
 
     @Test
-    void deletingActiveProfileFails() {
+    void deletingActiveLoadoutFails() {
         server.dispatchCommand(player, "inv delete default");
 
-        assertEquals("Can't delete " + player.getName() + "'s active profile. Switch away from it first.", nextMessage());
+        assertEquals("Can't delete " + player.getName() + "'s active loadout. Switch away from it first.", nextMessage());
     }
 
     @Test
-    void deletingExistingProfileRemovesIt() {
+    void deletingExistingLoadoutRemovesIt() {
         server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
         server.dispatchCommand(player, "inv delete castle");
 
-        assertEquals("Deleted profile 'castle' for " + player.getName() + ".", nextMessage());
-        assertFalse(plugin.getProfileManager().getData(player).getProfiles().containsKey("castle"));
+        assertEquals("Deleted loadout 'castle' for " + player.getName() + ".", nextMessage());
+        assertFalse(plugin.getLoadoutManager().getData(player).getLoadouts().containsKey("castle"));
     }
 
     @Test
-    void renamesStoredProfile() {
+    void renamesStoredLoadout() {
         server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
         server.dispatchCommand(player, "inv rename castle fortress");
 
-        assertEquals("Renamed profile 'castle' to 'fortress' for " + player.getName() + ".", nextMessage());
-        PlayerProfileData data = plugin.getProfileManager().getData(player);
-        assertFalse(data.getProfiles().containsKey("castle"));
-        assertTrue(data.getProfiles().containsKey("fortress"));
+        assertEquals("Renamed loadout 'castle' to 'fortress' for " + player.getName() + ".", nextMessage());
+        PlayerLoadoutData data = plugin.getLoadoutManager().getData(player);
+        assertFalse(data.getLoadouts().containsKey("castle"));
+        assertTrue(data.getLoadouts().containsKey("fortress"));
     }
 
     @Test
-    void renamingActiveProfileUpdatesCurrentProfile() {
+    void renamingActiveLoadoutUpdatesCurrentLoadout() {
         server.dispatchCommand(player, "inv rename default home");
 
-        assertEquals("Renamed profile 'default' to 'home' for " + player.getName() + ".", nextMessage());
-        assertEquals("home", plugin.getProfileManager().getData(player).getCurrentProfile());
+        assertEquals("Renamed loadout 'default' to 'home' for " + player.getName() + ".", nextMessage());
+        assertEquals("home", plugin.getLoadoutManager().getData(player).getCurrentLoadout());
     }
 
     private List<String> tabComplete(String... args) {
@@ -142,7 +142,7 @@ class InvSwapCommandTest {
     }
 
     @Test
-    void tabCompletesOwnProfileNames() {
+    void tabCompletesOwnLoadoutNames() {
         server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
@@ -151,11 +151,11 @@ class InvSwapCommandTest {
     }
 
     @Test
-    void tabCompletesProfileNamesCreatedByOtherPlayers() {
+    void tabCompletesLoadoutNamesCreatedByOtherPlayers() {
         PlayerMock other = server.addPlayer("Other");
-        PlayerProfileData otherData = plugin.getProfileManager().getData(other);
-        otherData.setProfile("treehouse", InventorySnapshot.empty());
-        plugin.getProfileManager().save(other);
+        PlayerLoadoutData otherData = plugin.getLoadoutManager().getData(other);
+        otherData.setLoadout("treehouse", InventorySnapshot.empty());
+        plugin.getLoadoutManager().save(other);
 
         assertEquals(List.of("default", "treehouse"), tabComplete("swap", ""));
     }

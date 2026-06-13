@@ -17,7 +17,7 @@ final class SignStyle {
         return Component.text("[inv]", NamedTextColor.GRAY, TextDecoration.ITALIC);
     }
 
-    static Component styledProfileName(String profileName) {
-        return Component.text(profileName, NamedTextColor.DARK_GREEN, TextDecoration.BOLD);
+    static Component styledLoadoutName(String loadoutName) {
+        return Component.text(loadoutName, NamedTextColor.DARK_GREEN, TextDecoration.BOLD);
     }
 }

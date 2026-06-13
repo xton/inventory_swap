@@ -8,7 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 
 /**
- * Recolors the "[INV]" tag (and profile name) on a sign as soon as a player writes it,
+ * Recolors the "[INV]" tag (and loadout name) on a sign as soon as a player writes it,
  * so it's obvious at a glance which signs the plugin will respond to.
  */
 public class SignStyleListener implements Listener {
@@ -33,11 +33,11 @@ public class SignStyleListener implements Listener {
 
         event.line(0, SignStyle.styledTag());
 
-        Component profileLine = event.line(1);
-        if (profileLine != null) {
-            String profileName = PlainTextComponentSerializer.plainText().serialize(profileLine).trim();
-            if (!profileName.isEmpty()) {
-                event.line(1, SignStyle.styledProfileName(profileName));
+        Component loadoutLine = event.line(1);
+        if (loadoutLine != null) {
+            String loadoutName = PlainTextComponentSerializer.plainText().serialize(loadoutLine).trim();
+            if (!loadoutName.isEmpty()) {
+                event.line(1, SignStyle.styledLoadoutName(loadoutName));
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.xton.inventoryswap.profile;
+package com.xton.inventoryswap.loadout;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
