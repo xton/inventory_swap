@@ -66,7 +66,7 @@ class SignStyleListenerTest {
         SignChangeEvent event = change("[inv]", "castle", "", "");
 
         Component tagLine = event.line(0);
-        assertEquals("[INV]", plainText(tagLine));
+        assertEquals("[inv]", plainText(tagLine));
         assertEquals(NamedTextColor.GRAY, tagLine.color());
         assertTrue(tagLine.hasDecoration(TextDecoration.ITALIC));
 
@@ -80,7 +80,7 @@ class SignStyleListenerTest {
     void leavesProfileLineAloneWhenEmpty() {
         SignChangeEvent event = change("[INV]", "", "", "");
 
-        assertEquals("[INV]", plainText(event.line(0)));
+        assertEquals("[inv]", plainText(event.line(0)));
         assertEquals(NamedTextColor.GRAY, event.line(0).color());
         assertEquals("", plainText(event.line(1)));
     }
