@@ -32,4 +32,8 @@ public class InventorySwapPlugin extends JavaPlugin {
             profileManager.saveAll();
         }
     }
+
+    public ProfileManager getProfileManager() {
+        return profileManager;
+    }
 }

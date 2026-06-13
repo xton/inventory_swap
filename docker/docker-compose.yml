@@ -1,0 +1,19 @@
+name: inventory-swap-smoke-test
+
+services:
+  paper:
+    image: itzg/minecraft-server:latest
+    environment:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      VERSION: "1.21.1"
+      ONLINE_MODE: "FALSE"
+      LEVEL_TYPE: "flat"
+      SPAWN_PROTECTION: "0"
+      MEMORY: "1G"
+      ENABLE_RCON: "TRUE"
+      RCON_PASSWORD: "smoketest"
+    volumes:
+      - ./plugins:/data/plugins
+    ports:
+      - "25575:25575"
