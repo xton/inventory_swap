@@ -1,0 +1,20 @@
+name: InventorySwap
+version: '${version}'
+main: com.xton.inventoryswap.InventorySwapPlugin
+api-version: '1.21'
+author: xton
+description: Swap your inventory between named profiles by right-clicking a sign or container.
+
+commands:
+  invswap:
+    description: Manage inventory swap profiles.
+    usage: /invswap <list|current|switch|create|delete|rename> ...
+    permission: inventoryswap.admin
+
+permissions:
+  inventoryswap.use:
+    description: Allows switching inventory profiles via signs and containers.
+    default: true
+  inventoryswap.admin:
+    description: Allows managing inventory profiles for any player via commands.
+    default: op
