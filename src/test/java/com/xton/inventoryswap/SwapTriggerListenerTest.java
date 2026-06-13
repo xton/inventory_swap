@@ -150,6 +150,18 @@ class SwapTriggerListenerTest {
     }
 
     @Test
+    void rightClickingSignRestylesItToCurrentLook() {
+        Block block = world.getBlockAt(0, 64, 0);
+        placeSign(block, "[INV]", "castle");
+
+        rightClick(block);
+
+        Sign sign = (Sign) block.getState();
+        assertEquals(SignStyle.styledTag(), sign.getSide(Side.FRONT).line(0));
+        assertEquals(SignStyle.styledProfileName("castle"), sign.getSide(Side.FRONT).line(1));
+    }
+
+    @Test
     void rightClickingPlainBarrelDoesNothing() {
         Block barrel = world.getBlockAt(20, 64, 20);
         barrel.setType(Material.BARREL);

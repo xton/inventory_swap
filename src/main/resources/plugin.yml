@@ -6,9 +6,16 @@ author: xton
 description: Swap your inventory between named profiles by right-clicking a sign or container.
 
 commands:
-  invswap:
+  inv:
     description: Manage inventory swap profiles.
-    usage: /invswap <list|current|switch|create|delete|rename> ...
+    aliases: [invswap]
+    usage: |-
+      /inv list [player]
+      /inv current [player]
+      /inv swap <profile> [player]
+      /inv create <profile> [player]
+      /inv delete <profile> [player]
+      /inv rename <old> <new> [player]
     permission: inventoryswap.admin
 
 permissions:

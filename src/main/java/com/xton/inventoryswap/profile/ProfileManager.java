@@ -8,7 +8,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -54,6 +57,33 @@ public class ProfileManager {
         if (data != null) {
             save(uuid, data);
         }
+    }
+
+    /**
+     * Returns the names of every profile any player has, for use in tab completion.
+     */
+    public Set<String> getAllKnownProfileNames() {
+        Set<UUID> uuids = new HashSet<>(cache.keySet());
+
+        File[] files = playerDataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files != null) {
+            for (File file : files) {
+                String name = file.getName().substring(0, file.getName().length() - ".yml".length());
+                try {
+                    uuids.add(UUID.fromString(name));
+                } catch (IllegalArgumentException ignored) {
+                    // Not a player data file; skip it.
+                }
+            }
+        }
+
+        Set<String> names = new TreeSet<>();
+        for (UUID uuid : uuids) {
+            PlayerProfileData data = getData(uuid);
+            names.add(data.getCurrentProfile());
+            names.addAll(data.getProfiles().keySet());
+        }
+        return names;
     }
 
     public void saveAll() {

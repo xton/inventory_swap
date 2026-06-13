@@ -67,12 +67,13 @@ class SignStyleListenerTest {
 
         Component tagLine = event.line(0);
         assertEquals("[INV]", plainText(tagLine));
-        assertEquals(NamedTextColor.AQUA, tagLine.color());
-        assertTrue(tagLine.hasDecoration(TextDecoration.BOLD));
+        assertEquals(NamedTextColor.GRAY, tagLine.color());
+        assertTrue(tagLine.hasDecoration(TextDecoration.ITALIC));
 
         Component profileLine = event.line(1);
         assertEquals("castle", plainText(profileLine));
-        assertEquals(NamedTextColor.GREEN, profileLine.color());
+        assertEquals(NamedTextColor.DARK_GREEN, profileLine.color());
+        assertTrue(profileLine.hasDecoration(TextDecoration.BOLD));
     }
 
     @Test
@@ -80,7 +81,7 @@ class SignStyleListenerTest {
         SignChangeEvent event = change("[INV]", "", "", "");
 
         assertEquals("[INV]", plainText(event.line(0)));
-        assertEquals(NamedTextColor.AQUA, event.line(0).color());
+        assertEquals(NamedTextColor.GRAY, event.line(0).color());
         assertEquals("", plainText(event.line(1)));
     }
 
@@ -89,8 +90,8 @@ class SignStyleListenerTest {
         SignChangeEvent event = change("Welcome!", "to the castle", "", "");
 
         assertEquals("Welcome!", plainText(event.line(0)));
-        assertFalse(NamedTextColor.AQUA.equals(event.line(0).color()));
+        assertFalse(NamedTextColor.GRAY.equals(event.line(0).color()));
         assertEquals("to the castle", plainText(event.line(1)));
-        assertFalse(NamedTextColor.GREEN.equals(event.line(1).color()));
+        assertFalse(NamedTextColor.DARK_GREEN.equals(event.line(1).color()));
     }
 }

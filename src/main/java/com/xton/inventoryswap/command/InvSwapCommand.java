@@ -18,6 +18,8 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "list", "current", "switch", "create", "delete", "rename");
+            "list", "current", "swap", "create", "delete", "rename");
 
     private final ProfileManager profileManager;
     private final ProfileSwapService swapService;
@@ -46,7 +48,7 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "list" -> handleList(sender, args);
             case "current" -> handleCurrent(sender, args);
-            case "switch" -> handleSwitch(sender, args);
+            case "swap" -> handleSwap(sender, args);
             case "create" -> handleCreate(sender, args);
             case "delete" -> handleDelete(sender, args);
             case "rename" -> handleRename(sender, args);
@@ -92,9 +94,9 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
                 target.getName() + "'s active profile: " + data.getCurrentProfile(), NamedTextColor.GOLD));
     }
 
-    private void handleSwitch(CommandSender sender, String[] args) {
+    private void handleSwap(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /invswap switch <profile> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv swap <profile> [player]", NamedTextColor.RED));
             return;
         }
 
@@ -107,7 +109,7 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
         Player online = target.getPlayer();
         if (online == null) {
             sender.sendMessage(Component.text(
-                    target.getName() + " must be online to switch their active inventory.", NamedTextColor.RED));
+                    target.getName() + " must be online to swap their active inventory.", NamedTextColor.RED));
             return;
         }
 
@@ -117,12 +119,12 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
             case CREATED -> SwapFeedback.showSwitched(online, profileName, true);
             case ALREADY_ACTIVE -> SwapFeedback.showAlreadyActive(online, profileName);
         }
-        sender.sendMessage(Component.text("Switched " + online.getName() + " to '" + profileName + "'.", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("Swapped " + online.getName() + " to '" + profileName + "'.", NamedTextColor.GREEN));
     }
 
     private void handleCreate(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /invswap create <profile> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv create <profile> [player]", NamedTextColor.RED));
             return;
         }
 
@@ -145,7 +147,7 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
     private void handleDelete(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /invswap delete <profile> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv delete <profile> [player]", NamedTextColor.RED));
             return;
         }
 
@@ -172,7 +174,7 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
     private void handleRename(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(Component.text("Usage: /invswap rename <old> <new> [player]", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /inv rename <old> <new> [player]", NamedTextColor.RED));
             return;
         }
 
@@ -232,12 +234,12 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text("InventorySwap commands:", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("/invswap list [player] - list a player's profiles", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/invswap current [player] - show a player's active profile", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/invswap switch <profile> [player] - swap a player's active inventory", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/invswap create <profile> [player] - create an empty profile", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/invswap delete <profile> [player] - delete a profile", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/invswap rename <old> <new> [player] - rename a profile", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv list [player] - list a player's profiles", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv current [player] - show a player's active profile", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv swap <profile> [player] - swap a player's active inventory", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv create <profile> [player] - create an empty profile", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv delete <profile> [player] - delete a profile", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/inv rename <old> <new> [player] - rename a profile", NamedTextColor.GRAY));
     }
 
     @Override
@@ -248,13 +250,13 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
 
         return switch (args[0].toLowerCase(Locale.ROOT)) {
             case "list", "current" -> args.length == 2 ? filter(onlinePlayerNames(), args[1]) : List.of();
-            case "switch", "create", "delete" -> switch (args.length) {
-                case 2 -> filter(profileNamesFor(sender), args[1]);
+            case "swap", "create", "delete" -> switch (args.length) {
+                case 2 -> filter(allProfileNames(sender), args[1]);
                 case 3 -> filter(onlinePlayerNames(), args[2]);
                 default -> List.of();
             };
             case "rename" -> switch (args.length) {
-                case 2 -> filter(profileNamesFor(sender), args[1]);
+                case 2 -> filter(allProfileNames(sender), args[1]);
                 case 4 -> filter(onlinePlayerNames(), args[3]);
                 default -> List.of();
             };
@@ -262,15 +264,14 @@ public class InvSwapCommand implements CommandExecutor, TabCompleter {
         };
     }
 
-    private List<String> profileNamesFor(CommandSender sender) {
-        if (!(sender instanceof Player player)) {
-            return List.of();
+    private List<String> allProfileNames(CommandSender sender) {
+        Set<String> names = new TreeSet<>(profileManager.getAllKnownProfileNames());
+        if (sender instanceof Player player) {
+            PlayerProfileData data = profileManager.getData(player);
+            names.add(data.getCurrentProfile());
+            names.addAll(data.getProfiles().keySet());
         }
-        PlayerProfileData data = profileManager.getData(player);
-        List<String> names = new ArrayList<>();
-        names.add(data.getCurrentProfile());
-        names.addAll(data.getProfiles().keySet());
-        return names;
+        return new ArrayList<>(names);
     }
 
     private List<String> onlinePlayerNames() {

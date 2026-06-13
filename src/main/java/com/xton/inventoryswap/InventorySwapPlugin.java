@@ -19,10 +19,10 @@ public class InventorySwapPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(profileManager), this);
 
         InvSwapCommand invSwapCommand = new InvSwapCommand(profileManager, swapService);
-        var invswap = getCommand("invswap");
-        if (invswap != null) {
-            invswap.setExecutor(invSwapCommand);
-            invswap.setTabCompleter(invSwapCommand);
+        var inv = getCommand("inv");
+        if (inv != null) {
+            inv.setExecutor(invSwapCommand);
+            inv.setTabCompleter(invSwapCommand);
         }
     }
 

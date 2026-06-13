@@ -14,8 +14,8 @@ A PaperMC plugin that lets players keep several separate inventory "profiles"
    ```
 
    As soon as you finish editing it, the plugin recognizes the sign and
-   recolors it (`[INV]` turns bold aqua, the profile name turns green) so you
-   can tell at a glance that it's "live".
+   recolors it (`[INV]` turns gray and italic, the profile name turns bold
+   dark green) so you can tell at a glance that it's "live".
 
 2. Right-click the sign **or** a container (barrel, chest, etc.) that the
    sign is mounted on top of or attached to. The plugin will:
@@ -30,14 +30,16 @@ A PaperMC plugin that lets players keep several separate inventory "profiles"
 
 Each player starts on a profile called `default`.
 
-## Admin commands (`/invswap`, requires `inventoryswap.admin`, default: op)
+## Admin commands (`/inv`, requires `inventoryswap.admin`, default: op)
 
-- `/invswap list [player]` - list a player's profiles
-- `/invswap current [player]` - show a player's active profile
-- `/invswap switch <profile> [player]` - swap a player's active inventory
-- `/invswap create <profile> [player]` - create an empty profile
-- `/invswap delete <profile> [player]` - delete a profile (must not be active)
-- `/invswap rename <old> <new> [player]` - rename a profile
+`/invswap` also works as an alias.
+
+- `/inv list [player]` - list a player's profiles
+- `/inv current [player]` - show a player's active profile
+- `/inv swap <profile> [player]` - swap a player's active inventory
+- `/inv create <profile> [player]` - create an empty profile
+- `/inv delete <profile> [player]` - delete a profile (must not be active)
+- `/inv rename <old> <new> [player]` - rename a profile
 
 `player` defaults to the command sender when omitted.
 

@@ -11,6 +11,7 @@ import org.bukkit.block.Container;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -74,6 +75,7 @@ public class SwapTriggerListener implements Listener {
         }
 
         event.setCancelled(true);
+        restyleSign(sign);
 
         ProfileSwapService.Result result = swapService.switchProfile(player, profileName);
         switch (result) {
@@ -103,6 +105,37 @@ public class SwapTriggerListener implements Listener {
         }
 
         return null;
+    }
+
+    /**
+     * Brings an "[INV]" sign's styling up to date with the current look, in case it was
+     * written before the styling changed or by a plugin version that didn't style it at all.
+     */
+    private void restyleSign(Sign sign) {
+        SignSide front = sign.getSide(Side.FRONT);
+        List<Component> lines = front.lines();
+        boolean changed = false;
+
+        Component styledTag = SignStyle.styledTag();
+        if (!styledTag.equals(lines.get(0))) {
+            front.line(0, styledTag);
+            changed = true;
+        }
+
+        if (lines.size() > 1) {
+            String profileText = PlainTextComponentSerializer.plainText().serialize(lines.get(1)).trim();
+            if (!profileText.isEmpty()) {
+                Component styledProfile = SignStyle.styledProfileName(profileText);
+                if (!styledProfile.equals(lines.get(1))) {
+                    front.line(1, styledProfile);
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            sign.update();
+        }
     }
 
     /**

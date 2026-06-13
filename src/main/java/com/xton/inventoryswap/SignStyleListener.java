@@ -1,8 +1,6 @@
 package com.xton.inventoryswap;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.block.sign.Side;
 import org.bukkit.event.EventHandler;
@@ -33,13 +31,13 @@ public class SignStyleListener implements Listener {
             return;
         }
 
-        event.line(0, Component.text("[INV]", NamedTextColor.AQUA, TextDecoration.BOLD));
+        event.line(0, SignStyle.styledTag());
 
         Component profileLine = event.line(1);
         if (profileLine != null) {
             String profileName = PlainTextComponentSerializer.plainText().serialize(profileLine).trim();
             if (!profileName.isEmpty()) {
-                event.line(1, Component.text(profileName, NamedTextColor.GREEN));
+                event.line(1, SignStyle.styledProfileName(profileName));
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.xton.inventoryswap.command;
 
 import com.xton.inventoryswap.InventorySwapPlugin;
+import com.xton.inventoryswap.profile.InventorySnapshot;
 import com.xton.inventoryswap.profile.PlayerProfileData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -47,14 +50,14 @@ class InvSwapCommandTest {
 
     @Test
     void currentShowsDefaultProfileForNewPlayer() {
-        server.dispatchCommand(player, "invswap current");
+        server.dispatchCommand(player, "inv current");
 
         assertEquals(player.getName() + "'s active profile: default", nextMessage());
     }
 
     @Test
     void listShowsDefaultProfileAsActive() {
-        server.dispatchCommand(player, "invswap list");
+        server.dispatchCommand(player, "inv list");
 
         assertEquals("Profiles for " + player.getName() + ":", nextMessage());
         assertEquals(" - default (active)", nextMessage());
@@ -62,7 +65,7 @@ class InvSwapCommandTest {
 
     @Test
     void createAddsNewProfile() {
-        server.dispatchCommand(player, "invswap create castle");
+        server.dispatchCommand(player, "inv create castle");
 
         assertEquals("Created empty profile 'castle' for " + player.getName() + ".", nextMessage());
         assertTrue(plugin.getProfileManager().getData(player).getProfiles().containsKey("castle"));
@@ -70,38 +73,38 @@ class InvSwapCommandTest {
 
     @Test
     void creatingDuplicateProfileFails() {
-        server.dispatchCommand(player, "invswap create castle");
+        server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
-        server.dispatchCommand(player, "invswap create castle");
+        server.dispatchCommand(player, "inv create castle");
 
         assertEquals("'castle' already exists for " + player.getName() + ".", nextMessage());
     }
 
     @Test
-    void switchSwapsActiveProfileAndCreatesItIfMissing() {
+    void swapSwapsActiveProfileAndCreatesItIfMissing() {
         player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 5));
 
-        server.dispatchCommand(player, "invswap switch castle");
+        server.dispatchCommand(player, "inv swap castle");
 
-        assertEquals("Switched " + player.getName() + " to 'castle'.", nextMessage());
+        assertEquals("Swapped " + player.getName() + " to 'castle'.", nextMessage());
         assertEquals("castle", plugin.getProfileManager().getData(player).getCurrentProfile());
         assertTrue(isEmpty(player.getInventory().getItem(0)));
     }
 
     @Test
     void deletingActiveProfileFails() {
-        server.dispatchCommand(player, "invswap delete default");
+        server.dispatchCommand(player, "inv delete default");
 
         assertEquals("Can't delete " + player.getName() + "'s active profile. Switch away from it first.", nextMessage());
     }
 
     @Test
     void deletingExistingProfileRemovesIt() {
-        server.dispatchCommand(player, "invswap create castle");
+        server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
-        server.dispatchCommand(player, "invswap delete castle");
+        server.dispatchCommand(player, "inv delete castle");
 
         assertEquals("Deleted profile 'castle' for " + player.getName() + ".", nextMessage());
         assertFalse(plugin.getProfileManager().getData(player).getProfiles().containsKey("castle"));
@@ -109,10 +112,10 @@ class InvSwapCommandTest {
 
     @Test
     void renamesStoredProfile() {
-        server.dispatchCommand(player, "invswap create castle");
+        server.dispatchCommand(player, "inv create castle");
         nextMessage();
 
-        server.dispatchCommand(player, "invswap rename castle fortress");
+        server.dispatchCommand(player, "inv rename castle fortress");
 
         assertEquals("Renamed profile 'castle' to 'fortress' for " + player.getName() + ".", nextMessage());
         PlayerProfileData data = plugin.getProfileManager().getData(player);
@@ -122,9 +125,38 @@ class InvSwapCommandTest {
 
     @Test
     void renamingActiveProfileUpdatesCurrentProfile() {
-        server.dispatchCommand(player, "invswap rename default home");
+        server.dispatchCommand(player, "inv rename default home");
 
         assertEquals("Renamed profile 'default' to 'home' for " + player.getName() + ".", nextMessage());
         assertEquals("home", plugin.getProfileManager().getData(player).getCurrentProfile());
+    }
+
+    private List<String> tabComplete(String... args) {
+        InvSwapCommand command = (InvSwapCommand) plugin.getCommand("inv").getTabCompleter();
+        return command.onTabComplete(player, plugin.getCommand("inv"), "inv", args);
+    }
+
+    @Test
+    void tabCompletesSubcommandNames() {
+        assertEquals(List.of("swap"), tabComplete("s"));
+    }
+
+    @Test
+    void tabCompletesOwnProfileNames() {
+        server.dispatchCommand(player, "inv create castle");
+        nextMessage();
+
+        assertEquals(List.of("castle", "default"), tabComplete("swap", ""));
+        assertEquals(List.of("castle"), tabComplete("swap", "c"));
+    }
+
+    @Test
+    void tabCompletesProfileNamesCreatedByOtherPlayers() {
+        PlayerMock other = server.addPlayer("Other");
+        PlayerProfileData otherData = plugin.getProfileManager().getData(other);
+        otherData.setProfile("treehouse", InventorySnapshot.empty());
+        plugin.getProfileManager().save(other);
+
+        assertEquals(List.of("default", "treehouse"), tabComplete("swap", ""));
     }
 }
